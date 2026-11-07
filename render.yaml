@@ -1,0 +1,87 @@
+# Render Blueprint for VisionGuard AI. Spec: https://render.com/docs/blueprint-spec
+#
+# This default uses FREE plans, so applying it creates no paid resources. Free limits:
+#   - The web service has no persistent disk: uploads and reports are lost on restart, redeploy or sleep.
+#     STORAGE_PERSISTENT=false makes the app warn its users about this.
+#   - The free database expires 30 days after creation.
+# For real use, follow "Moving to persistent storage" in RENDER_DEPLOYMENT.md (paid).
+
+services:
+  - type: web
+    name: visionguard-api
+    runtime: python
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    # Weights are fetched once at build time and verified by checksum, never at startup.
+    buildCommand: pip install --disable-pip-version-check -r requirements.txt && python scripts/download_models.py
+    # preDeployCommand is paid-only, so migrations run here. Safe with one instance.
+    startCommand: python -m alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port $PORT --timeout-graceful-shutdown 20
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: visionguard-database
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      # Prompted once. Enter the frontend's URL, for example https://visionguard-frontend.onrender.com
+      - key: CORS_ORIGINS
+        sync: false
+      - key: STORAGE_BACKEND
+        value: local
+      - key: STORAGE_ROOT
+        value: /tmp/visionguard
+      - key: STORAGE_PERSISTENT
+        value: "false"
+      - key: ONNX_THREADS
+        value: "1"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: AI_PROVIDER
+        value: none
+      # Optional. Leave empty to keep external AI off.
+      - key: AI_API_KEY
+        sync: false
+
+  - type: web
+    name: visionguard-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci --include=dev --no-fund --no-audit && npm run build
+    staticPublishPath: dist
+    envVars:
+      # Prompted once. Enter the API's URL, for example https://visionguard-api.onrender.com
+      - key: VITE_API_BASE_URL
+        sync: false
+    routes:
+      # Lets direct links and refreshes on client-side routes reach the React app.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self' https://*.onrender.com; frame-src blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+databases:
+  - name: visionguard-database
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "16"

@@ -1,0 +1,19 @@
+# Runtime dependencies (versions verified together on Python 3.12).
+fastapi==0.162.2
+uvicorn[standard]==0.54.0
+sqlalchemy==2.1.8
+alembic==1.20.1
+pydantic==2.14.3
+pydantic-settings==2.16.2
+python-multipart==0.0.33
+argon2-cffi==25.1.0
+PyJWT==2.15.1
+email-validator==2.3.0
+psycopg[binary]==3.3.8
+numpy==2.5.4
+opencv-python-headless==5.0.0.93
+pillow==13.0.0
+onnxruntime==1.31.1
+reportlab==5.1.0
+# Only used when AI_PROVIDER=anthropic; core inspection works without an API key.
+anthropic==2.6.0

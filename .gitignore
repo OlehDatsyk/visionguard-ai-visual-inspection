@@ -1,0 +1,71 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+secrets/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Node and frontend builds
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+coverage/
+
+# Local databases
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Private runtime data: uploads, generated reports and processed images
+storage/*
+!storage/.gitkeep
+
+# Model weights are downloaded by backend/scripts/download_models.py
+backend/model_weights/
+*.onnx
+*.pt
+*.pth
+*.safetensors
+
+# Logs and temporary files
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.download
+
+# Test output
+frontend/e2e/output/
+frontend/e2e/fixtures/
+e2e-failure.png
+e2e-report.pdf
+e2e-results.json
+
+# IDE and operating system
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.claude/
+*.swp
+.DS_Store
+Thumbs.db
+Desktop.ini

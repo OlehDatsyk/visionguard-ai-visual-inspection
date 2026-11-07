@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #008300;
+  --chart-7: #9085e9;
+  --chart-8: #e66767;
+}
+
+html, body, #root { height: 100%; }
+body {
+  @apply bg-ink-950 text-text-1 font-sans antialiased;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+h1, h2, h3 { @apply font-semibold; letter-spacing: -0.01em; }
+:focus-visible { outline: 2px solid #3cc6dd; outline-offset: 2px; border-radius: 4px; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: #2a3a57; border-radius: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Grid items default to min-width: auto, which lets long truncated text widen the whole page. */
+.grid > * { min-width: 0; }
+
+@layer components {
+  .card { @apply rounded-lg border border-ink-700 bg-ink-850; }
+  .field { @apply w-full rounded-md border border-ink-600 bg-ink-900 px-3 py-2 text-sm text-text-1 placeholder:text-text-3 focus:border-accent focus:outline-none; }
+  .label { @apply mb-1 block text-xs font-medium text-text-2; }
+  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-wider text-text-3; }
+  .data { @apply font-mono tabular-nums; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

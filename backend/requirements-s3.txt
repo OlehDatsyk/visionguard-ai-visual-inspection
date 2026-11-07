@@ -1,0 +1,2 @@
+# Optional: install only when STORAGE_BACKEND=s3.
+boto3==1.43.126

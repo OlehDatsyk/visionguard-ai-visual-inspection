@@ -1,0 +1,16 @@
+from app.models.entities import (  # noqa: F401
+    AIConversation,
+    AIMessage,
+    AnalysisJob,
+    AppSetting,
+    ComparisonResult,
+    DetectedObject,
+    Finding,
+    ImageMetadata,
+    InspectionProject,
+    InspectionReport,
+    ReviewDecision,
+    UploadedImage,
+    User,
+    Workspace,
+)
