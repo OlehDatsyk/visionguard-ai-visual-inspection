@@ -126,7 +126,7 @@ See [SECURITY.md](SECURITY.md).
 
 ## Deployment
 
-[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md) covers Render, with a ready `render.yaml`. An untested `docker-compose.yml` is also included.
+[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md) covers Render, in two ways: the `render.yaml` Blueprint (separate API, frontend and database), or the root `Dockerfile`, which runs the API and web app together as one service. An untested `docker-compose.yml` is also included.
 
 ## Contributing
 

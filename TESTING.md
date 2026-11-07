@@ -57,13 +57,14 @@ Use `E2E_BROWSER=chrome` for Chrome. Without `E2E_SHOTS`, the test overwrites `d
 
 | Suite | Result |
 |---|---|
-| Backend tests on SQLite | **106 passed** |
-| Backend tests on PostgreSQL 16 | **106 passed** |
+| Backend tests on SQLite | **112 passed** (version 1.0.1, including 6 tests for single-service mode and blank variables) |
+| Backend tests on PostgreSQL 16 | **106 passed** (version 1.0.0, not rerun for 1.0.1) |
 | Backend line coverage | **93%** across `app/` |
 | Frontend unit and component tests | **14 passed** |
 | TypeScript strict type check | No errors |
 | Browser test, launcher-started app from a clean copy (development mode, SQLite) | **36 checks passed** |
 | Browser test, Render's start and build commands (production mode, PostgreSQL) | **36 checks passed** |
+| Browser test, single-service mode: the container start script with the API serving a `VITE_API_BASE_URL=/` build (production mode, SQLite, no `SECRET_KEY`) | **36 checks passed**, with the page's Content-Security-Policy enforced |
 | `alembic upgrade`, `check`, `downgrade`, `upgrade` on SQLite and PostgreSQL | Passed, with no drift from the models |
 | `pip-audit` on runtime requirements | No known vulnerabilities |
 | `npm audit` | 0 vulnerabilities |
@@ -109,7 +110,7 @@ Use `E2E_BROWSER=chrome` for Chrome. Without `E2E_SHOTS`, the test overwrites `d
 | **Live Render deployment** | Not deployed. `render.yaml` was checked against Render's documentation and parsed as YAML, but Render has not validated it. Its commands ran locally |
 | **HTTPS and the static site's Content-Security-Policy** | They only apply on the live site. Test these first after deploying |
 | **macOS, including `Start App.command`** | No Mac was available. Its syntax was checked with `bash -n`, and the shared launcher was tested on Windows |
-| **Docker and `docker-compose.yml`** | Docker was not installed |
+| **Docker, the root `Dockerfile` and `docker-compose.yml`** | Docker was not installed. The root image's start script and app were run locally on Windows instead |
 | **Live Anthropic API** | No key was used. The provider is tested against a mocked client, including errors and refusals |
 | **Real S3 storage** | The adapter is tested against a stubbed client only |
 | **Separate `python -m app.worker` process** | Only the in-process worker was exercised. The same job code runs in both |

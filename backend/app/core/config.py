@@ -13,7 +13,8 @@ DEV_SECRET = "dev-only-insecure-secret-change-me-0123456789"
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(REPO_DIR / ".env", BACKEND_DIR / ".env"), extra="ignore"
+        # Blank values count as unset, so a variable left empty in a host's dashboard falls back to its default.
+        env_file=(REPO_DIR / ".env", BACKEND_DIR / ".env"), extra="ignore", env_ignore_empty=True
     )
 
     environment: Literal["development", "test", "production"] = "development"

@@ -4,6 +4,30 @@
 
 Render facts here were checked against its documentation on 2026-11-07. Plans change, so check [render.com/pricing](https://render.com/pricing) before you create anything.
 
+## Two ways to deploy
+
+| | Blueprint (`render.yaml`) | One Docker service (root `Dockerfile`) |
+|---|---|---|
+| Created with | **New > Blueprint** | **New > Web Service**, which picks Docker automatically |
+| Services | API, frontend and PostgreSQL | One service runs the API and the web app |
+| URLs to enter | `CORS_ORIGINS` and `VITE_API_BASE_URL` | None, because the app and API share one address |
+| Database | Free PostgreSQL, expires after 30 days | SQLite inside the container, lost on restart, unless you add `DATABASE_URL` |
+| Tested | Render's commands run locally | Start script and app run locally. The Docker build itself was not run, because Docker was unavailable |
+
+### One Docker service
+
+If Render reported `open Dockerfile: no such file or directory`, the service was created as Docker before the root `Dockerfile` existed. Push this version, then:
+
+1. Open the service, then **Settings**. **Root Directory** must be empty, and **Dockerfile Path** must be `./Dockerfile`.
+2. Under **Environment**, add `SECRET_KEY`, set to a random value of at least 32 characters. Without it the app still starts, but uses a temporary key, so everyone is signed out on every restart.
+3. Optional: add `DATABASE_URL`, set to a PostgreSQL connection string such as the **Internal Database URL** of a Render PostgreSQL database in the same region, so accounts and records survive restarts. Uploaded files are still lost on restart without a disk.
+4. Choose **Manual Deploy > Deploy latest commit**. The first build takes several minutes.
+5. Open the service's `.onrender.com` address and register. `/health/ready` should return `{"status":"ready","database":"ok"}`.
+
+The image runs in production mode, serves the API under `/api/v1`, and serves the web app with the same security headers as the Blueprint's static site. Don't set `VITE_API_BASE_URL` or `CORS_ORIGINS` for this service. In this mode `/docs` shows the web app's "not found" page instead of returning 404.
+
+The rest of this guide describes the Blueprint.
+
 ## Architecture
 
 | Service | Render type | Name |
@@ -190,6 +214,9 @@ Open a service, then **Logs**. Application logs go to standard output. Passwords
 
 | Symptom | Likely cause |
 |---|---|
+| `open Dockerfile: no such file or directory` | The service is Docker, and the repository has no root `Dockerfile` or **Root Directory** is set. Push version 1.0.1 or later and clear Root Directory, or use the Blueprint |
+| `mkdir: cannot create directory ''` | A variable such as `STORAGE_ROOT` is defined but blank. Fixed in 1.0.1. Delete blank variables under Environment |
+| Docker service logs `SECRET_KEY is not set` | Add `SECRET_KEY` under Environment, or everyone is signed out on each restart |
 | Build fails with `VITE_API_BASE_URL must be set` | The prompted value is empty. Set it and redeploy the frontend |
 | Build fails with `must use HTTPS` | The value starts with `http://` |
 | `vite: not found` during the frontend build | Dev dependencies were skipped. Check that the build uses `--include=dev` |
@@ -235,4 +262,6 @@ Render's exact start and frontend build commands were run locally on PostgreSQL 
 | Production frontend build, routing and CORS | Verified locally |
 | Prompted URLs and CORS origins | Requires Render configuration |
 | Persistent files, paid database | Requires paid infrastructure |
-| Live deployment, HTTPS, CSP headers, Render performance | Not tested |
+| Single-service mode: start script, API serving the web app, CSP | Verified locally |
+| Root `Dockerfile` build | Not tested, because Docker was unavailable |
+| Live deployment, HTTPS, Render performance | Not tested |
