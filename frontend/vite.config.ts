@@ -4,6 +4,7 @@ import { defineConfig, loadEnv } from "vite";
 
 function checkApiUrl(url: string | undefined): void {
   if (!url) throw new Error("VITE_API_BASE_URL must be set for a production build. See .env.example.");
+  if (url === "/") return; // Same origin: the API serves this build (root Dockerfile).
   const local = /^http:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(url);
   if (!local && !url.startsWith("https://")) throw new Error("VITE_API_BASE_URL must use HTTPS outside local testing.");
 }

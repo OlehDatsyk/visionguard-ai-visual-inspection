@@ -1,6 +1,7 @@
 /** REST client. The token is kept in sessionStorage and is never logged. */
 // vite.config.ts refuses a production build without VITE_API_BASE_URL, so the fallback is development-only.
-const BASE = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8010").replace(/\/$/, "");
+// "/" means the API is on the same origin as the page, as in the single-service Docker image.
+const BASE = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8010").replace(/\/+$/, "");
 const PREFIX = `${BASE}/api/v1`;
 const TOKEN_KEY = "visionguard.token";
 

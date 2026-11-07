@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     access_token_ttl_minutes: int = Field(default=720, ge=5, le=43200)
 
     database_url: str = ""
+    # Folder holding a production frontend build (index.html). When set, the API also serves the
+    # web app from the same origin, as the root Dockerfile does. Empty: API only.
+    frontend_dir: str = ""
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     storage_backend: Literal["local", "s3"] = "local"

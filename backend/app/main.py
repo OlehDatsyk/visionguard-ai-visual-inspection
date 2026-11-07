@@ -1,11 +1,12 @@
 """FastAPI application entry point."""
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy import text
 
 from app import __version__
@@ -102,3 +103,47 @@ def ready():
 
 for module in (auth, inspections, comparisons, insights):
     app.include_router(module.router, prefix="/api/v1")
+
+
+# Policy for the web app's pages when the API serves them (single-service mode). Everything is same-origin.
+FRONTEND_CSP = (
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; "
+    "font-src 'self'; connect-src 'self'; frame-src blob:; object-src 'none'; base-uri 'self'; "
+    "form-action 'self'; frame-ancestors 'none'"
+)
+# Explicit types, so a host's own MIME registry can never break module scripts under nosniff.
+FRONTEND_TYPES = {
+    ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
+    ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".json": "application/json",
+    ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8",
+}
+
+
+def mount_frontend(application: FastAPI, directory: str) -> bool:
+    """Serve a production frontend build from the API, with client-side routes falling back to index.html."""
+    root = Path(directory).resolve()
+    index = root / "index.html"
+    if not index.is_file():
+        log.warning("FRONTEND_DIR is set but %s has no index.html; serving the API only", root)
+        return False
+
+    @application.get("/{path:path}", include_in_schema=False)
+    def frontend(path: str):
+        if path == "api" or path.startswith(("api/", "health")):
+            return JSONResponse({"detail": "Not Found"}, status_code=404)
+        candidate = (root / path).resolve()
+        if path and candidate.is_file() and candidate.is_relative_to(root):
+            cache = "public, max-age=31536000, immutable" if path.startswith("assets/") else "no-cache"
+            media_type = FRONTEND_TYPES.get(candidate.suffix.lower(), "application/octet-stream")
+            return FileResponse(candidate, media_type=media_type, headers={"Cache-Control": cache})
+        return FileResponse(
+            index, media_type=FRONTEND_TYPES[".html"],
+            headers={"Cache-Control": "no-cache", "Content-Security-Policy": FRONTEND_CSP},
+        )
+
+    log.info("Serving the web app from %s", root)
+    return True
+
+
+if settings.frontend_dir:
+    mount_frontend(app, settings.frontend_dir)
